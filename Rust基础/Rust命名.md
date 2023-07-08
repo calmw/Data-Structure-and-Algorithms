@@ -22,3 +22,4 @@
 
 - 在snake_case或SCREAMING_SNAKE_CASE模式下，单词不应由单个字母组成，除非是最后一个单词。
   例如使用btree_map而不使用b_tree_map,使用PI_2而不使用PI2
+- 命名代码示例：[命名.md](%E4%BB%A3%E7%A0%81%E7%A4%BA%E4%BE%8B%2F%E5%91%BD%E5%90%8D.md)
