@@ -1,8 +1,5 @@
 fn main() {
-    let a ;
-    {
-        let b = 10;
-        a = &b;
+    fn add<T>(x: T, y: T) -> T {
+        x + y
     }
-    println!("{a}")
 }
