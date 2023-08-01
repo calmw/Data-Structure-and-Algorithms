@@ -1,53 +1,51 @@
-struct Stack<T> {
-    // 栈大小
-    size: usize,
-    // 栈数据
+struct Queue<T> {
+    // 容量
+    cap: usize,
+    // 数据容器
     data: Vec<T>,
 }
 
-impl<T> Stack<T> {
-    // 初始化栈
+impl<T> Queue<T> {
+    // 初始化队列
     fn new() -> Self {
         Self {
-            size: 0,
+            cap: 0,
             data: vec![],
         }
     }
     fn is_empty(&self) -> bool {
-        0 == self.size
+        0 == Self::len(&self)
     }
     fn len(&self) -> usize {
-        self.size
+        self.data.len()
+    }
+    fn is_full(&self) -> bool {
+        self.len() == self.cap
     }
 
-    // 清空栈
+    // 清空队列
     fn clear(&mut self) {
-        self.size = 0;
-        self.data.clear();
+        self.data = Vec::with_capacity(self.cap);
     }
-    // 将数据保存在Vec末尾
-    fn push(&mut self, val: T) {
-        self.data.push(val)
-    }
-    // 弹出数据
-    fn pop(&mut self) -> Option<T> {
-        if 0 == self.size {
-            return None;
+
+    // 向队列中插入数据
+    fn enqueue(&mut self, val: T) -> Result<(), String> {
+        if self.len() >= self.cap {
+            return Err("No space available".to_string());
         }
-        self.size -= 1;
-        self.data.pop()
+        self.data.insert(0, val);
+        Ok(())
     }
-    // 返回栈顶数据引用
-    fn peek(&self) -> Option<&T> {
-        if 0 == self.size { return None; }
-        return self.data.get(self.size - 1);
+    // 数据出队
+    fn dequeue(&mut self) -> Option<T> {
+        if self.len() == 0 {
+            None
+        } else {
+            self.data.pop()
+        }
     }
-    // 返回栈顶数据可变引用
-    fn peek_mut(&mut self) -> Option<&mut T> {
-        if 0 == self.size { return None; }
-        return self.data.get_mut(self.size - 1);
-    }
-    // 以下为栈实现的迭代功能
+
+    // 以下为队列实现的迭代功能
     // into_iter,栈改变成为迭代器
     // iter,栈不变，得到不可变迭代器
     // iter_mut,栈不变，得到可变迭代器
@@ -56,32 +54,31 @@ impl<T> Stack<T> {
     }
 
     fn iter(&self) -> Iter<T> {
-        let mut iterator = Iter { stack: Vec::new() };
+        let mut iterator = Iter { queue: Vec::new() };
         for item in self.data.iter() {
-            iterator.stack.push(item);
+            iterator.queue.push(item);
         }
         iterator
     }
 
     fn iter_mut(&mut self) -> IterMut<T> {
-        let mut iterator = IterMut { stack: Vec::new() };
+        let mut iterator = IterMut { queue: Vec::new() };
         for item in self.data.iter_mut() {
-            iterator.stack.push(item);
+            iterator.queue.push(item);
         }
         iterator
     }
 }
 
 // 类元组结构体
-struct IntoIter<T>(Stack<T>);
+struct IntoIter<T>(Queue<T>);
 
 impl<T: Clone> Iterator for IntoIter<T> {
     type Item = T;
 
     fn next(&mut self) -> Option<Self::Item> {
         if !self.0.is_empty() {
-            self.0.size -= 1;
-            self.0.data.pop()
+            Some(self.0.data.remove(0))
         } else {
             None
         }
@@ -89,24 +86,24 @@ impl<T: Clone> Iterator for IntoIter<T> {
 }
 
 struct Iter<'a, T: 'a> {
-    stack: Vec<&'a T>,
+    queue: Vec<&'a T>,
 }
 
 impl<'a, T> Iterator for Iter<'a, T> {
     type Item = &'a T;
     fn next(&mut self) -> Option<Self::Item> {
-        self.stack.pop()
+        Some(self.queue.remove(0))
     }
 }
 
 struct IterMut<'a, T: 'a> {
-    stack: Vec<&'a mut T>,
+    queue: Vec<&'a mut T>,
 }
 
 impl<'a, T> Iterator for IterMut<'a, T> {
     type Item = &'a mut T;
     fn next(&mut self) -> Option<Self::Item> {
-        self.stack.pop()
+        Some(self.queue.remove(0))
     }
 }
 
