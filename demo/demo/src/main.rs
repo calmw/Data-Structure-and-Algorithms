@@ -1,3 +1,4 @@
+#[derive(Debug)]
 struct Queue<T> {
     // 容量
     cap: usize,
