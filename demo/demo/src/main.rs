@@ -1,9 +1,20 @@
-#[derive(Debug)]
-struct Deque<T> {
-    // 容量
-    cap: usize,
+// 节点链表采用了Box指针（大小是确定的），因为确定大小才能分配内存
+type Pointer<T> = Option<Box<Node<T>>>;
+
+// 定义链表
+struct List<T> {
+    // 链表中的节点数
+    size: usize,
     // 数据容器
-    data: Vec<T>,
+    head: Node<T>,
+}
+
+// 链表节点
+struct Node<T> {
+    // 数据
+    elem: T,
+    // 下一个节点
+    next: Pointer<T>,
 }
 
 impl<T> Deque<T> {
