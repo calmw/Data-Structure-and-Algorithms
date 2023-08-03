@@ -6,7 +6,7 @@ struct List<T> {
     // 链表中的节点数
     size: usize,
     // 数据容器
-    head: Node<T>,
+    head: Pointer<T>,
 }
 
 // 链表节点
@@ -17,63 +17,62 @@ struct Node<T> {
     next: Pointer<T>,
 }
 
-impl<T> Deque<T> {
+impl<T> List<T> {
     // 初始化双端队列
     fn new() -> Self {
         Self {
-            cap: 0,
-            data: vec![],
+            size: 0,
+            head: None,
         }
     }
     fn is_empty(&self) -> bool {
-        0 == Self::len(&self)
+        0 == self.size
     }
 
     fn len(&self) -> usize {
-        self.data.len()
-    }
-
-    fn is_full(&self) -> bool {
-        self.len() == self.cap
+        self.size
     }
 
     // 清空队列
     fn clear(&mut self) {
-        self.data = Vec::with_capacity(self.cap);
+        self.size = 0;
+        self.head = None;
     }
 
-    // 向队列中插入数据
-    fn add_front(&mut self, val: T) -> Result<(), String> {
-        if self.len() >= self.cap {
-            return Err("No space available".to_string());
-        }
-        self.data.push(val);
-        Ok(())
-    }
-    fn add_rear(&mut self, val: T) -> Result<(), String> {
-        if self.len() >= self.cap {
-            return Err("No space available".to_string());
-        }
-        self.data.insert(0, val);
-        Ok(())
-    }
-    // 数据出队
-    fn remove_front(&mut self) -> Option<T> {
-        if self.len() == 0 {
-            None
-        } else {
-            self.data.pop()
-        }
-    }
-    fn remove_rear(&mut self) -> Option<T> {
-        if self.len() == 0 {
-            None
-        } else {
-            Some(self.data.remove(0))
-        }
+    // 向链表添加数据
+    fn push(&mut self, val: T) {
+        let node: Box<Node<T>> = Box::new(Node {
+            elem: val,
+            next: self.head.take(),
+        });
+        self.head = Some(node);
+        self.size += 1;
     }
 
-    // 以下为队列实现的迭代功能
+    // 取出数据，留下空位
+    fn pop(&mut self) -> Option<T> {
+        self.head.take().map(|node| {
+            self.head = node.next;
+            self.size -= 1;
+            node.elem
+        })
+    }
+
+    // peek,不改变值，引用
+    fn peek(&self) -> Option<&T> {
+        self.head.as_ref().map(|node| {
+            &node.elem
+        })
+    }
+
+    // peek_mut,改变值，可变引用
+    fn peek_mut(&mut self) -> Option<&mut T> {
+        self.head.as_mut().map(|node| {
+            &mut node.elem
+        })
+    }
+
+    // 以下为链表实现的迭代功能
     // into_iter,栈改变成为迭代器
     // iter,栈不变，得到不可变迭代器
     // iter_mut,栈不变，得到可变迭代器
@@ -82,56 +81,50 @@ impl<T> Deque<T> {
     }
 
     fn iter(&self) -> Iter<T> {
-        let mut iterator = Iter { deque: Vec::new() };
-        for item in self.data.iter() {
-            iterator.deque.push(item);
-        }
-        iterator
+        Iter { next: self.head.as_deref() }
     }
 
     fn iter_mut(&mut self) -> IterMut<T> {
-        let mut iterator = IterMut { deque: Vec::new() };
-        for item in self.data.iter_mut() {
-            iterator.deque.push(item);
-        }
-        iterator
+        IterMut { next: self.head.as_deref_mut() }
     }
 }
 
 // 类元组结构体
-struct IntoIter<T>(Deque<T>);
+struct IntoIter<T>(List<T>);
 
 impl<T: Clone> Iterator for IntoIter<T> {
     type Item = T;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if !self.0.is_empty() {
-            Some(self.0.data.remove(0))
-        } else {
-            None
-        }
+        self.0.pop()
     }
 }
 
 struct Iter<'a, T: 'a> {
-    deque: Vec<&'a T>,
+    next: Option<&'a Node<T>>,
 }
 
 impl<'a, T> Iterator for Iter<'a, T> {
     type Item = &'a T;
     fn next(&mut self) -> Option<Self::Item> {
-        Some(self.deque.remove(0))
+        self.next.map(|node| {
+            self.next = node.next.as_deref();
+            &node.elem
+        })
     }
 }
 
 struct IterMut<'a, T: 'a> {
-    deque: Vec<&'a mut T>,
+    next: Option<&'a mut Node<T>>,
 }
 
 impl<'a, T> Iterator for IterMut<'a, T> {
     type Item = &'a mut T;
     fn next(&mut self) -> Option<Self::Item> {
-        Some(self.deque.remove(0))
+        self.next.take().map(|node| {
+            self.next = node.next.as_deref_mut();
+            &mut node.elem
+        })
     }
 }
 
