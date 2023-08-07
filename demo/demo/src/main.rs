@@ -1,38 +1,21 @@
-// slot保存键
-// data保存值
-// cap控制容量
-#[derive(Debug, Clone, PartialEq)]
-struct HashMap<T> {
-    cap: usize,
-    slot: Vec<T>,
-    data: Vec<T>,
-}
-
-impl<T: Clone + PartialEq> HashMap<T> {
-    fn new(cap: usize) -> Self {
-        // 初始化slot和data
-        let mut slot = Vec::with_capacity(cap);
-        let mut data = Vec::with_capacity(cap);
-        for i in 0..cap {
-            slot.push(0);
-            data.push(Default::default());
-        }
-        HashMap { cap, slot, data }
+fn bubble_sort(nums: &mut [i32]) {
+    if nums.len() < 2 {
+        return;
     }
-
-    fn len(&self) -> usize {
-        let mut len = 0;
-        for &d in self.slot.iter() {
-            // 槽中的数据不为0，表示有数据，对len加1
-            if 0 != d {
-                len += 1;
+    for i in 1..nums.len() {
+        for j in 0..nums.len() - 1 {
+            if nums[j] > nums[j + 1] {
+                nums.swap(j, j + 1)
             }
         }
-        len
     }
 }
 
-fn main() {}
+fn main() {
+    let mut nums = [12, 78, 789, 22, 56, 86, 2, 45, 213, 789, 124, 6880, 35];
+    bubble_sort(&mut nums);
+    println!("sorted nums: {:?}", nums)
+}
 
 
 
