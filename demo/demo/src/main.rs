@@ -12,23 +12,6 @@ fn insertion_sort(nums: &mut [i32]) {
     }
 }
 
-fn insertion_sort2(nums: &mut [i32]) {
-    if nums.len() < 2 { return; }
-    let len_nums = nums.len() - 1;
-    for i in 1..len_nums {
-        // nums[0..i]相当于较低位的有序序列
-        for j in 0..i {
-            if nums[i] < nums[j] {
-                nums[j + 1] = nums[j];
-                nums[j] = nums[i];
-
-            // } else {
-            //     nums[j + 1] = nums[j];
-            }
-        }
-    }
-}
-
 fn main() {
     let mut nums = [12, 78, 789, 22, 56, 86, 2, 45, 213, 789, 124, 6880, 35];
     insertion_sort(&mut nums);
