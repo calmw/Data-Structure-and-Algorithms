@@ -16,47 +16,155 @@ macro_rules! right_child { // 计算右字节点的下标
     };
 }
 
-fn heap_sort(nums: &mut [i32]) {
-    if nums.len() < 2 { return; }
-
-    let len = nums.len() - 1;
-    let last_parent = parent!(len);
-    for i in (1..last_parent).rev() {
-        move_down(nums, i); // 第一次构建小顶堆，下标从1开始
-    }
-    for end in (1..nums.len()).rev() {
-        nums.swap(1, end);
-        move_down(&mut nums[..end], 1)// 重建堆
-    }
+// 定义二叉堆
+#[derive(Debug)]
+struct BinaryHeap {
+    // 数据量
+    size: usize,
+    data: Vec<i32>, // 数据容器
 }
 
-fn move_down(nums: &mut [i32], mut parent: usize) {
-    let last = nums.len() - 1;
-
-    loop {
-        let left = left_child!(parent);
-        let right = right_child!(parent);
-        if left > last { break; }
-
-        // right<=last,保存在右字节点
-        let child = if right <= last && nums[left] < nums[right] {
-            right
-        } else {
-            left
-        };
-        // 子节点大于父节点，交换数据
-        if nums[child] > nums[parent] {
-            nums.swap(parent, child);
+impl BinaryHeap {
+    fn new() -> Self {
+        BinaryHeap {// 将vec的首位置0，但不计入总数
+            size: 0,
+            data: vec![0],
         }
-        // 更新父子关系
-        parent = child
+    }
+
+    fn size(&self) -> usize {
+        self.size
+    }
+
+    fn is_empty(&self) -> bool {
+        0 == self.size
+    }
+
+    // 获取堆中最小数据
+    fn min(&self) -> Option<i32> {
+        if 0 == self.size {
+            None
+        } else {
+            // Some(self.data[1].clone())// 泛型用这个
+            Some(self.data[1])
+        }
+    }
+
+    // 在堆的末尾加入一个数据，调整堆
+    fn push(&mut self, val: i32) {
+        self.data.push(val);
+        self.size += 1;
+        self.move_up(self.size)
+    }
+
+    // 将小的数据向上移动，类似于冒泡
+    fn move_up(&mut self, mut c: usize) {
+        loop {
+            // 计算当前节点父节点的位置
+            let p = parent!(c);
+            if p <= 0 { break; }
+            // 当前节点数据小于父节点数据，交换
+            if self.data[c] < self.data[p] {
+                self.data.swap(c, p);
+            }
+            // 父节点成为当前节点
+            c = p;
+        }
+    }
+
+    // 获取堆顶数据
+    fn pop(&mut self) -> Option<i32> {
+        if 0 == self.size {// 堆中无数据
+            None
+        } else if 1 == self.size { // 堆中只有一个数据
+            self.size -= 1; // 堆中只有一个数据，比较好处理
+            self.data.pop()
+        } else {// 堆中有多个数据，先交换并弹出数据，再调整堆
+            self.data.swap(1, self.size-1);
+            let val = self.data.pop();
+            self.size -= 1;
+            self.move_up(1);
+            val
+        }
+    }
+
+    // 大的数据下沉
+    fn move_down(&mut self, mut c: usize) {
+        loop {
+            let lc = left_child!(c);// 当前节点左字节点的位置
+            if lc > self.size { break; }
+
+            let mc = self.min_child(c); // 当前节点的最小子节点的位置
+            if self.data[c] > self.data[mc-1] {
+                self.data.swap(c, mc);
+            }
+            c = mc; //最小字节点称为当前节点
+        }
+    }
+
+    // 计算最小子节点的位置
+    fn min_child(&self, c: usize) -> usize {
+        let (lc, rc) = (left_child!(c), right_child!(c));
+
+        if rc > self.size {
+            lc // 右子节点的位置>size,左字节点是最小子节点
+        } else if self.data[lc] < self.data[rc] { // 存在左右子节点，需具体判断左右子节点中，哪个子节点更小
+            lc
+        } else {
+            rc
+        }
+    }
+
+    // 构建新堆
+    fn build_new(&mut self, arr: &[i32]) {
+        // 删除原始数据
+        for _i in 0..self.size {
+            self.data.pop();
+        }
+        // 添加新数据
+        for &val in arr {
+            self.data.push(val);
+        }
+        self.size = self.data.len();
+
+        // 调整堆，使其成为小顶堆
+        let size = self.size;
+        let mut p = parent!(size);
+        while p > 0 {
+            self.move_down(p);
+            p -= 1;
+        }
+    }
+
+    // 将切片数据逐个加入堆
+    fn build_add(&mut self, arr: &[i32]) {
+        for &val in arr {
+            self.push(val);
+        }
     }
 }
+
 
 fn main() {
-    let mut nums = [12, 78, 789, 22, 56, 86, 2, 45, 213, 789, 124, 6880, 35];
-    heap_sort(&mut nums);
-    println!("sorted nums: {:?}", nums)
+    let mut bh = BinaryHeap::new();
+    let nums = [-1, 0, 2, 3, 4];
+    bh.push(10);
+    bh.push(9);
+    bh.push(8);
+    bh.push(7);
+    bh.push(6);
+
+    bh.build_add(&nums);
+
+    println!("{:?}",bh);
+    println!("empty: {:?}", bh.is_empty());
+    println!("min: {:?}", bh.min());
+    println!("pop min: {:?}", bh.pop());
+
+    bh.build_new(&nums);
+    println!("{:?}",bh);
+    println!("size: {:?}", bh.size());
+    println!("pop min: {:?}", bh.pop());
 }
 
 
