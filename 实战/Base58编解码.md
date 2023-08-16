@@ -1,3 +1,6 @@
+#### base58编码
+
+```rust
 // 最大转换进制
 const BIG_RADIX: u32 = 58;
 
@@ -87,6 +90,6 @@ const DIGITS_MAP: &'static [u8] = &[
 fn main() {
     println!("{:#?}", "abc".encode_to_base58())
 }
+```
 
-
-
+#### base58解码
