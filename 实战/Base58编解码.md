@@ -1,5 +1,7 @@
 #### base58编码
 
+- 示例代码
+
 ```rust
 // 最大转换进制
 const BIG_RADIX: u32 = 58;
